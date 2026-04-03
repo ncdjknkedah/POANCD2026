@@ -91,7 +91,7 @@
                         <div class="flex items-end gap-4">
                             <div class="text-6xl font-black text-indigo-900 tracking-tighter" id="kedahPerf">0%</div>
                             <div class="pb-2">
-                                <div id="kedahTargetBadge" class="text-sm font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-md border border-slate-200 shadow-sm">Sasaran: 0%</div>
+                                <div id="kedahTargetBadge" class="text-sm font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-md border border-slate-200 shadow-sm">Sasaran: 0</div>
                             </div>
                         </div>
                         <div class="flex gap-4 text-sm w-full md:w-auto">
@@ -115,7 +115,7 @@
                         <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
                             <tr>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider">Daerah</th>
-                                <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Sasaran (%)</th>
+                                <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Sasaran</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-right">Numerator (NUM)</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-right">Denominator (DENOM)</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Pencapaian (%)</th>
@@ -131,7 +131,7 @@
             <!-- Chart section -->
             <section class="glass-card rounded-2xl p-6 shadow-md">
                 <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center">
-                    <svg class="w-5 h-5 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <svg class="w-5 h-5 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     Carta Perbandingan Pencapaian Mengikut Daerah
                 </h2>
                 <div class="relative h-96 w-full">
@@ -178,24 +178,44 @@
             }
         }
 
-        // Process data for Dropdowns
+        // Process data for Dropdowns and Arrays
         function processRawData() {
             let firstData = globalData.find(d => d.period && d.period.trim() !== "");
             monitoringPeriod = firstData ? firstData.period : "JAN-MAC";
             document.getElementById('periodBadge').innerText = `Sukuan Pemantauan: ${monitoringPeriod}`;
 
             let focusSet = new Set();
-            let kedahObj = globalData.find(d => d.district === "KEDAH");
             
+            // Assign displayNames to all indicators across all districts (1.1, 1.2, 2.1, etc.)
+            globalData.forEach(dist => {
+                let currentFocus = "";
+                let focusCounter = 0;
+                let indCounter = 0;
+                
+                dist.indicators.forEach(ind => {
+                    let f = ind.focus || "Semua Fokus";
+                    if(f !== currentFocus) {
+                        currentFocus = f;
+                        focusCounter++;
+                        indCounter = 1;
+                    } else {
+                        indCounter++;
+                    }
+                    
+                    // Attach numbering (e.g. "1.1 % Saringan Kanser")
+                    ind.displayName = focusCounter + "." + indCounter + " " + ind.name;
+                });
+            });
+
+            // Populate the Focus dropdown
+            let kedahObj = globalData.find(d => d.district === "KEDAH");
             if(kedahObj && kedahObj.indicators) {
                 kedahObj.indicators.forEach(ind => {
-                    // if API does not return focus natively, apply fallback
                     let f = ind.focus || "Semua Fokus";
                     focusSet.add(f);
                 });
             }
 
-            // Populate Focus Selector
             const fokusSelector = document.getElementById('fokusSelector');
             fokusSelector.innerHTML = '';
             Array.from(focusSet).forEach(f => {
@@ -205,7 +225,7 @@
                 fokusSelector.appendChild(option);
             });
 
-            // Update Indicator Dropdown base on first Focus
+            // Update Indicator Dropdown based on first Focus
             updateIndicatorDropdown();
 
             document.getElementById('loadingState').classList.add('hidden');
@@ -223,8 +243,10 @@
                     let indFocus = ind.focus || "Semua Fokus";
                     if(indFocus === selectedFocus) {
                         let option = document.createElement('option');
+                        // Use original name as value for reliable lookup
                         option.value = ind.name;
-                        option.text = ind.name;
+                        // Use numbered display string for aesthetic dropdown text
+                        option.text = ind.displayName;
                         indicatorSelector.appendChild(option);
                     }
                 });
@@ -237,15 +259,31 @@
             const selectedIndicator = document.getElementById('indicatorSelector').value;
             
             let rawRows = [];
+            let displayTargetStr = "0";
+            let globalTargetValForChart = 0;
 
             globalData.forEach(dist => {
                 let indData = dist.indicators.find(i => i.name === selectedIndicator);
                 if(indData) {
-                    let cleanTarget = typeof indData.targetVal === 'number' ? indData.targetVal : parseFloat(indData.targetVal) || 0;
-                    if (cleanTarget > 0 && cleanTarget <= 1 && indData.target.toString().indexOf('%') === -1) {
-                       cleanTarget = cleanTarget * 100;
+                    
+                    // Fetch original unparsed string from Google Sheets directly (e.g. ">80%")
+                    let rawTargetStr = String(indData.target || "0").trim();
+                    
+                    // Try to parse the numerals out for plotting the chart's dash line
+                    let match = rawTargetStr.match(/[\d.]+/);
+                    let chartNumericTarget = match ? parseFloat(match[0]) : 0;
+                    
+                    // Handle cases if sheet returned raw fraction "0.8" instead of percentage
+                    if (chartNumericTarget > 0 && chartNumericTarget <= 1 && rawTargetStr.indexOf('%') === -1) {
+                       chartNumericTarget = chartNumericTarget * 100;
+                    }
+
+                    if (dist.district === "KEDAH") {
+                        displayTargetStr = rawTargetStr; // Always secure Kedah's string for global display
+                        globalTargetValForChart = chartNumericTarget;
                     }
                     
+                    // Calculation for perf% natively
                     let perfValue = 0;
                     if(indData.denom > 0) {
                         perfValue = (indData.num / indData.denom) * 100;
@@ -254,7 +292,8 @@
                     let rowData = {
                         district: dist.district,
                         isKedah: dist.district === "KEDAH",
-                        targetVal: cleanTarget,
+                        targetVal: chartNumericTarget,
+                        targetStr: rawTargetStr,
                         num: indData.num,
                         denom: indData.denom,
                         perf: perfValue
@@ -263,7 +302,7 @@
                 }
             });
 
-            // Sort alphabetically, forcing KEDAH to the bottom
+            // Sort alphabetically, forcing KEDAH to the bottom always
             rawRows.sort((a, b) => {
                 if (a.isKedah) return 1;
                 if (b.isKedah) return -1;
@@ -273,8 +312,6 @@
             let tableRows = rawRows;
             let chartLabels = [];
             let chartData = [];
-            // Target is consistent, pick from KEDAH (last item) if possible
-            let globalTarget = tableRows.length > 0 ? tableRows[tableRows.length - 1].targetVal : 0; 
             
             tableRows.forEach(row => {
                 chartLabels.push(row.isKedah ? "KEDAH (NEGERI)" : row.district.replace("PKD ", ""));
@@ -294,7 +331,7 @@
                 
                 tr.innerHTML = `
                     <td class="px-6 py-4">${row.district}</td>
-                    <td class="px-6 py-4 text-center text-slate-500 font-semibold">${row.targetVal.toFixed(1)}%</td>
+                    <td class="px-6 py-4 text-center text-slate-500 font-extrabold">${row.targetStr}</td>
                     <td class="px-6 py-4 text-right font-semibold text-slate-700">${row.num.toLocaleString()}</td>
                     <td class="px-6 py-4 text-right font-semibold text-slate-700">${row.denom.toLocaleString()}</td>
                     <td class="px-6 py-4 text-center">
@@ -306,17 +343,17 @@
                 // Update Kedah Cards
                 if(row.isKedah) {
                     document.getElementById('kedahPerf').innerText = row.perf.toFixed(1) + '%';
-                    document.getElementById('kedahTargetBadge').innerText = `Sasaran: ${row.targetVal.toFixed(1)}%`;
+                    document.getElementById('kedahTargetBadge').innerText = `Sasaran: ${row.targetStr}`;
                     document.getElementById('kedahNum').innerText = row.num.toLocaleString();
                     document.getElementById('kedahDenom').innerText = row.denom.toLocaleString();
                 }
             });
 
             // Draw Chart
-            drawChart(chartLabels, chartData, globalTarget);
+            drawChart(chartLabels, chartData, globalTargetValForChart, displayTargetStr);
         }
 
-        function drawChart(labels, data, targetLineValue) {
+        function drawChart(labels, data, targetLineValue, targetStringDisplay) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             
             if (myChart) {
@@ -365,7 +402,7 @@
                                     borderDash: [6, 6],
                                     label: {
                                         display: true,
-                                        content: `Sasaran: ${targetLineValue.toFixed(1)}%`,
+                                        content: `Sasaran Semasa: ${targetStringDisplay}`,
                                         position: 'start',
                                         backgroundColor: 'rgba(220, 38, 38, 0.9)',
                                         color: 'white',
