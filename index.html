@@ -91,7 +91,7 @@
                         <div class="flex items-end gap-4">
                             <div class="text-6xl font-black text-indigo-900 tracking-tighter" id="kedahPerf">0%</div>
                             <div class="pb-2">
-                                <div id="kedahTargetBadge" class="text-sm font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-md border border-slate-200 shadow-sm">Sasaran Suku Tahun: 0%</div>
+                                <div id="kedahTargetBadge" class="text-sm font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-md border border-slate-200 shadow-sm">Sasaran: 0%</div>
                             </div>
                         </div>
                         <div class="flex gap-4 text-sm w-full md:w-auto">
@@ -115,7 +115,7 @@
                         <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200">
                             <tr>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider">Daerah</th>
-                                <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Sasaran Suku Ini</th>
+                                <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Sasaran (%)</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-right">Numerator (NUM)</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-right">Denominator (DENOM)</th>
                                 <th scope="col" class="px-6 py-4 font-bold tracking-wider text-center">Pencapaian (%)</th>
@@ -146,7 +146,7 @@
         // =========================================================
         // URL Google Apps Script Web App
         // =========================================================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBfw27za9cYVtIxTLFztjBh9vk_lUwv-wHWfRyg1cx4fmtoXavD9Z4eOctoY2XvR4o/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhtpW_mW-O7P33ihQ1VDsqDHZlj0E4XmJPGwC-ChrZFu0L1Ld9FlmLjB5m5ZquJgVW/exec"; 
         
         Chart.register(window['chartjs-plugin-annotation']);
 
@@ -233,36 +233,19 @@
             renderDashboard();
         }
 
-        function getQuarterMultiplier(periodStr) {
-            let p = periodStr.toUpperCase();
-            if(p.includes("JAN-MAC")) return 0.25;      
-            if(p.includes("JAN-JUN")) return 0.50;      
-            if(p.includes("JAN-SEPT") || p.includes("JAN-SEP")) return 0.75; 
-            if(p.includes("JAN-DIS")) return 1.0;       
-            return 0.25; 
-        }
-
         function renderDashboard() {
             const selectedIndicator = document.getElementById('indicatorSelector').value;
-            const quarterMultiplier = getQuarterMultiplier(monitoringPeriod);
             
-            let tableRows = [];
-            let chartLabels = [];
-            let chartData = [];
-            let currentAnnualTarget = 0;
+            let rawRows = [];
 
             globalData.forEach(dist => {
                 let indData = dist.indicators.find(i => i.name === selectedIndicator);
                 if(indData) {
-                    
                     let cleanTarget = typeof indData.targetVal === 'number' ? indData.targetVal : parseFloat(indData.targetVal) || 0;
                     if (cleanTarget > 0 && cleanTarget <= 1 && indData.target.toString().indexOf('%') === -1) {
                        cleanTarget = cleanTarget * 100;
                     }
-                    currentAnnualTarget = cleanTarget;
-                    let quarterlyTarget = cleanTarget * quarterMultiplier;
                     
-                    // Native perf calculation: num/denom to prevent 0.5% vs 50% issue. 
                     let perfValue = 0;
                     if(indData.denom > 0) {
                         perfValue = (indData.num / indData.denom) * 100;
@@ -271,34 +254,47 @@
                     let rowData = {
                         district: dist.district,
                         isKedah: dist.district === "KEDAH",
-                        targetQtr: quarterlyTarget,
+                        targetVal: cleanTarget,
                         num: indData.num,
                         denom: indData.denom,
                         perf: perfValue
                     };
-                    tableRows.push(rowData);
-
-                    chartLabels.push(dist.district === "KEDAH" ? "KEDAH (NEGERI)" : dist.district.replace("PKD ", ""));
-                    chartData.push(perfValue);
+                    rawRows.push(rowData);
                 }
             });
 
-            let globalQtrTarget = currentAnnualTarget * quarterMultiplier;
+            // Sort alphabetically, forcing KEDAH to the bottom
+            rawRows.sort((a, b) => {
+                if (a.isKedah) return 1;
+                if (b.isKedah) return -1;
+                return a.district.localeCompare(b.district);
+            });
+
+            let tableRows = rawRows;
+            let chartLabels = [];
+            let chartData = [];
+            // Target is consistent, pick from KEDAH (last item) if possible
+            let globalTarget = tableRows.length > 0 ? tableRows[tableRows.length - 1].targetVal : 0; 
+            
+            tableRows.forEach(row => {
+                chartLabels.push(row.isKedah ? "KEDAH (NEGERI)" : row.district.replace("PKD ", ""));
+                chartData.push(row.perf);
+            });
 
             // Draw Table
             const tbody = document.getElementById('districtTableBody');
             tbody.innerHTML = '';
             tableRows.forEach(row => {
                 let badgeClass = 'perf-badge-low';
-                if(row.perf >= row.targetQtr) badgeClass = 'perf-badge-high';
-                else if(row.perf >= (row.targetQtr * 0.8)) badgeClass = 'perf-badge-med';
+                if(row.perf >= row.targetVal) badgeClass = 'perf-badge-high';
+                else if(row.perf >= (row.targetVal * 0.8)) badgeClass = 'perf-badge-med';
 
                 const tr = document.createElement('tr');
                 tr.className = `border-b transition-colors hover:bg-slate-50 ${row.isKedah ? 'kedah-row' : 'bg-white'}`;
                 
                 tr.innerHTML = `
                     <td class="px-6 py-4">${row.district}</td>
-                    <td class="px-6 py-4 text-center text-slate-500 font-semibold">${row.targetQtr.toFixed(1)}%</td>
+                    <td class="px-6 py-4 text-center text-slate-500 font-semibold">${row.targetVal.toFixed(1)}%</td>
                     <td class="px-6 py-4 text-right font-semibold text-slate-700">${row.num.toLocaleString()}</td>
                     <td class="px-6 py-4 text-right font-semibold text-slate-700">${row.denom.toLocaleString()}</td>
                     <td class="px-6 py-4 text-center">
@@ -310,14 +306,14 @@
                 // Update Kedah Cards
                 if(row.isKedah) {
                     document.getElementById('kedahPerf').innerText = row.perf.toFixed(1) + '%';
-                    document.getElementById('kedahTargetBadge').innerText = `Sasaran Suku Ini: ${row.targetQtr.toFixed(1)}%`;
+                    document.getElementById('kedahTargetBadge').innerText = `Sasaran: ${row.targetVal.toFixed(1)}%`;
                     document.getElementById('kedahNum').innerText = row.num.toLocaleString();
                     document.getElementById('kedahDenom').innerText = row.denom.toLocaleString();
                 }
             });
 
             // Draw Chart
-            drawChart(chartLabels, chartData, globalQtrTarget);
+            drawChart(chartLabels, chartData, globalTarget);
         }
 
         function drawChart(labels, data, targetLineValue) {
@@ -369,7 +365,7 @@
                                     borderDash: [6, 6],
                                     label: {
                                         display: true,
-                                        content: `Sasaran Suku Ini: ${targetLineValue.toFixed(1)}%`,
+                                        content: `Sasaran: ${targetLineValue.toFixed(1)}%`,
                                         position: 'start',
                                         backgroundColor: 'rgba(220, 38, 38, 0.9)',
                                         color: 'white',
