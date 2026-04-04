@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pencapaian POA NCD 2026 - Negeri Kedah</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js and Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            transition: all 0.3s ease;
+        }
+        .perf-badge { padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; display: inline-block;}
+        .perf-badge-high { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .perf-badge-med { background-color: #fef08a; color: #854d0e; border: 1px solid #fde047; }
+        .perf-badge-low { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .kedah-row { background-color: #e0e7ff; font-weight: 800; color: #312e81; border-top: 3px solid #c7d2fe; }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1); width: 40px; height: 40px;
+            border-radius: 50%; border-left-color: #4f46e5;
+            animation: spin 1s linear infinite; margin: auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Sidebar transitions */
+        .sidebar-open { transform: translateX(0%); }
+        .sidebar-closed { transform: translateX(-100%); }
+        @media (min-width: 768px) {
+            .md\:sidebar-open { transform: translateX(0%); }
+        }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-800 bg-slate-50">
+
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-20 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar-closed md:sidebar-open absolute mt-16 md:mt-0 md:relative z-30 flex flex-col w-72 h-full px-5 py-8 overflow-y-auto bg-slate-900 border-r border-slate-800 transition-transform duration-300 ease-in-out shadow-2xl">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-lg shadow-lg shadow-indigo-900/50">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-extrabold text-white tracking-tight">POA NCD</h2>
+                    <p class="text-xs text-indigo-400 font-semibold tracking-wider">TAHUN 2026</p>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <nav class="space-y-3 flex-1 mt-6">
+            <p class="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">Navigasi Utama</p>
+            
+            <button onclick="switchView('dashboard')" id="btn-nav-dashboard" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30">
+                <svg class="w-5 h-5 mr-3 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                Pencapaian POA
+            </button>
+            
+            <button onclick="switchView('submission')" id="btn-nav-submission" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white">
+                <svg class="w-5 h-5 mr-3 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Status Penghantaran
+            </button>
+        </nav>
+        
+        <div class="mt-auto px-4 py-5 bg-slate-800/40 rounded-2xl border border-slate-700/50 backdrop-blur">
+            <p class="text-xs text-slate-400 font-medium text-center leading-relaxed">Papan Pemuka Rasmi<br><span class="text-white font-bold">Jabatan Kesihatan<br>Negeri Kedah</span></p>
+        </div>
+    </aside>
+
+    <!-- Main Content wrapper -->
+    <div class="flex flex-col flex-1 w-full overflow-y-auto relative bg-slate-100">
+        
+        <!-- Header -->
+        <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+            <div class="px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 hover:bg-slate-100 p-2 rounded-xl transition-colors ring-1 ring-slate-200 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-800" id="headerTitle">Papan Pemuka NCD</h1>
+                        <p class="text-xs sm:text-sm text-indigo-600 font-bold tracking-wide" id="periodBadge">Sistem Analitik Data</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button onclick="refreshCurrentView()" class="bg-slate-800 hover:bg-slate-900 text-white transition-all duration-300 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow-lg shadow-slate-900/20 font-bold ring-1 ring-slate-700 ring-offset-1">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Segar Semula
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Pages -->
+        <main class="p-4 sm:p-6 lg:p-8 flex-1 max-w-7xl mx-auto w-full">
+            
+            <!-- VIEW 1: DASHBOARD PENCAPAIAN -->
+            <div id="view-dashboard" class="space-y-8 fade-in block">
+                
+                <div id="loadingState" class="py-24 text-center glass-card rounded-3xl shadow-sm border border-slate-200">
+                    <div class="spinner mb-6"></div>
+                    <p class="text-slate-500 font-bold text-lg animate-pulse tracking-wide">Menganalisis data dari pangkalan...</p>
+                </div>
+
+                <div id="dashboardContent" class="hidden space-y-8">
+                    <!-- CONTROLS: Fokus & Indicator Dropdowns -->
+                    <section class="glass-card rounded-3xl p-6 shadow-sm border-t-[5px] border-indigo-500">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="fokusSelector" class="flex items-center text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">
+                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">1</span> 
+                                    Pilih Fokus Utama
+                                </label>
+                                <select id="fokusSelector" onchange="updateIndicatorDropdown()" class="bg-indigo-50 border border-indigo-100 text-indigo-900 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:bg-white cursor-pointer placeholder-indigo-300">
+                                </select>
+                            </div>
+                            <div>
+                                <label for="indicatorSelector" class="flex items-center text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">
+                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">2</span> 
+                                    Indikator Spesifik
+                                </label>
+                                <select id="indicatorSelector" onchange="renderDashboard()" class="bg-white border border-slate-300 text-slate-800 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:border-slate-400 cursor-pointer">
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- KEDAH Highlight Scorecard -->
+                    <section>
+                        <div class="glass-card rounded-3xl p-8 border-l-[6px] border-indigo-600 bg-gradient-to-br from-white to-indigo-50/80 shadow-md relative overflow-hidden">
+                            <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none">
+                                <svg width="200" height="200" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2z"></path></svg>
+                            </div>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Pencapaian Keseluruhan</h3>
+                            <h2 class="text-3xl font-black text-slate-800 mb-6 tracking-tight">NEGERI KEDAH</h2>
+                            
+                            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+                                <div class="flex items-end gap-5">
+                                    <div class="text-7xl font-black text-indigo-900 tracking-tighter tabular-nums" id="kedahPerf">0%</div>
+                                    <div class="pb-3">
+                                        <div id="kedahTargetBadge" class="text-sm font-bold bg-white text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 shadow-sm">Sasaran: 0</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4 text-sm w-full md:w-auto mt-4 md:mt-0">
+                                    <div class="bg-white border border-slate-200/60 px-5 py-4 rounded-2xl shadow-sm flex-1 md:w-36 text-center ring-1 ring-slate-100"><span class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">NUMERATOR</span> <span class="font-extrabold text-2xl text-slate-800 tabular-nums" id="kedahNum">0</span></div>
+                                    <div class="bg-white border border-slate-200/60 px-5 py-4 rounded-2xl shadow-sm flex-1 md:w-36 text-center ring-1 ring-slate-100"><span class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">DENOMINATOR</span> <span class="font-extrabold text-2xl text-slate-800 tabular-nums" id="kedahDenom">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Chart section -->
+                    <section class="glass-card rounded-3xl p-6 shadow-md border border-slate-200">
+                        <h2 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center">
+                            <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </div>
+                            Prestasi Mengikut Daerah
+                        </h2>
+                        <div class="relative h-96 w-full">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </section>
+
+                    <!-- Table section -->
+                    <section class="glass-card rounded-3xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="px-6 py-5 bg-white border-b border-slate-100 flex items-center justify-between">
+                            <h2 class="text-lg font-extrabold text-slate-800 flex items-center">
+                                <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                </div>
+                                Perincian Data
+                            </h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200 font-bold">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4 tracking-wider">Daerah</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-center">Sasaran</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Numerator</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Denominator</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-center">Pencapaian</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="districtTableBody" class="divide-y divide-slate-100">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- VIEW 2: STATUS PENGHANTARAN -->
+            <div id="view-submission" class="space-y-8 hidden fade-in">
+                
+                <div id="loadingStateSubmission" class="py-24 text-center glass-card rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                    <div class="spinner mb-6"></div>
+                    <p class="text-slate-500 font-bold text-lg animate-pulse tracking-wide">Mengakses fail dari Google Drive...</p>
+                </div>
+
+                <div id="submissionContent" class="hidden">
+                    
+                    <!-- Alert Peringatan -->
+                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-xl mb-6 shadow-sm flex items-start gap-4">
+                        <svg class="w-6 h-6 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <p class="text-sm text-indigo-900 font-bold">Panduan Semakan</p>
+                            <p class="text-xs text-indigo-700 mt-1 font-medium">Jadual di bawah memaparkan status ketersediaan fail format Google Sheets di dalam folder tempoh pemantauan berkenaan (<strong class="font-bold">JAN-MAC, JAN-JUN, JAN-SEPT, JAN-DIS</strong>). Pastikan fail dinamakan dengan betul, contohnya: <code class="bg-indigo-100 px-1.5 py-0.5 rounded text-indigo-800 font-bold">RETEN_BAL_JAN-MAC</code>.</p>
+                        </div>
+                    </div>
+
+                    <section class="glass-card rounded-3xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="px-6 py-6 bg-white border-b border-slate-100 flex items-center justify-between">
+                            <h2 class="text-lg font-extrabold text-slate-800 flex items-center">
+                                <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                </div>
+                                Matriks Penghantaran Reten POA
+                            </h2>
+                        </div>
+                        
+                        <div class="p-4 bg-slate-50/80 border-b border-slate-100 flex items-center justify-center gap-6 text-sm text-slate-600 font-bold">
+                            <span class="flex items-center gap-2"><div class="w-6 h-6 rounded-md bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 font-black shadow-sm">✓</div> Fail Dikesan (Dihantar)</span>
+                            <span class="flex items-center gap-2"><div class="w-6 h-6 rounded-md bg-red-50 border border-red-200 flex items-center justify-center text-red-500 font-black shadow-sm">✗</div> Belum Dihantar</span>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-[11px] text-slate-500 uppercase bg-white border-b-2 border-slate-200 font-black tracking-widest leading-loose">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-5">Daerah</th>
+                                        <th scope="col" class="px-6 py-5 text-center border-l bg-slate-50">JAN - MAC</th>
+                                        <th scope="col" class="px-6 py-5 text-center border-l bg-slate-50">JAN - JUN</th>
+                                        <th scope="col" class="px-6 py-5 text-center border-l bg-slate-50">JAN - SEPT</th>
+                                        <th scope="col" class="px-6 py-5 text-center border-l bg-slate-50">JAN - DIS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="submissionTableBody" class="divide-y divide-slate-100">
+                                    <!-- injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // =========================================================
+        // URL Google Apps Script
+        // =========================================================
+        // URL KUTIPAN DATA PENCAPAIAN (SEDIA ADA)
+        const APPS_SCRIPT_DATA_URL = "https://script.google.com/macros/s/AKfycbxRUbypVqqyrNjs5NLmnmQWlDUuSDcIJZQe3_fHEirKgMNZjIr9MwUDGJoowQaXoDg4Kg/exec"; 
+        
+        // URL KUTIPAN STATUS PENGHANTARAN FOLDER (BARU)
+        // SILA GANTIKAN DENGAN URL DEPLOYMENT BAHARU YANG SAYA BERIKAN DALAM PELAN
+        const APPS_SCRIPT_SUBMISSION_URL = "<!-- MASUKKAN_URL_BARU_DI_SINI -->";
+
+        Chart.register(window['chartjs-plugin-annotation']);
+
+        let globalData = [];
+        let myChart = null;
+        let currentView = 'dashboard';
+
+        // DISTRICT MAPPING for Submission Matrix UI Display
+        const distMap = {
+            "BAL": "BALING",
+            "BB": "BANDAR BAHARU",
+            "KS": "KOTA SETAR",
+            "KM": "KUALA MUDA",
+            "KP": "KUBANG PASU",
+            "KUL": "KULIM",
+            "LGKW": "LANGKAWI",
+            "PT": "PADANG TERAP",
+            "PNDG": "PENDANG",
+            "SIK": "SIK",
+            "YAN": "YAN"
+        };
+        const periodsArr = ["JAN-MAC", "JAN-JUN", "JAN-SEPT", "JAN-DIS"];
+
+        // --- Sidebar Logic ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar.classList.contains('sidebar-closed')) {
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('sidebar-closed');
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function switchView(viewName) {
+            currentView = viewName;
+            
+            // Visual feedback on buttons
+            document.getElementById('btn-nav-dashboard').className = viewName === 'dashboard' 
+                ? "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30"
+                : "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white";
+                
+            document.getElementById('btn-nav-submission').className = viewName === 'submission' 
+                ? "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30"
+                : "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white";
+
+            // Hide all views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-submission').classList.add('hidden');
+
+            // Show selected
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+            
+            // Auto close sidebar on mobile after clicking
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+
+            refreshCurrentView();
+        }
+
+        function refreshCurrentView() {
+            if (currentView === 'dashboard') {
+                if (globalData.length === 0) {
+                    fetchPerformanceData();
+                }
+            } else if (currentView === 'submission') {
+                fetchSubmissionData();
+            }
+        }
+
+        // --- View 2: Submission Logic ---
+        async function fetchSubmissionData() {
+            document.getElementById('submissionContent').classList.add('hidden');
+            const loader = document.getElementById('loadingStateSubmission');
+            loader.classList.remove('hidden');
+            
+            // Tunjuk ralat jika url tiada
+            if(APPS_SCRIPT_SUBMISSION_URL === "<!-- MASUKKAN_URL_BARU_DI_SINI -->") {
+                loader.innerHTML = `<p class="text-amber-500 font-bold mb-2">Tindakan Diperlukan</p><p class="text-slate-600 text-sm max-w-md mx-auto">Sila Deploy skrip Google Apps baharu dan gantikan URL <code>APPS_SCRIPT_SUBMISSION_URL</code> di dalam fail HTML ini.</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(APPS_SCRIPT_SUBMISSION_URL);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.submissionMatrix) {
+                    renderSubmissionTable(result.submissionMatrix);
+                    loader.classList.add('hidden');
+                    document.getElementById('submissionContent').classList.remove('hidden');
+                } else {
+                    loader.innerHTML = `<p class="text-red-500 font-medium">Ralat kutipan status:</p><p class="text-red-400 text-sm mt-2">Masalah membaca matriks Google Apps Script.</p>`;
+                }
+            } catch(e) {
+                loader.innerHTML = `<p class="text-red-500 font-medium">Gagal memuat turun data matrix.</p><p class="text-slate-500 text-sm mt-2">${e.message}</p>`;
+            }
+        }
+
+        function renderSubmissionTable(matrix) {
+            const tbody = document.getElementById('submissionTableBody');
+            tbody.innerHTML = '';
+
+            // Generate row for each district
+            Object.keys(distMap).forEach(dCode => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b transition-colors hover:bg-slate-50/50 bg-white';
+                
+                let html = `<td class="px-6 py-4 font-bold text-slate-800">${distMap[dCode]} <span class="ml-2 text-[10px] text-slate-400 font-normal bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${dCode}</span></td>`;
+                
+                periodsArr.forEach(period => {
+                    const isSubmitted = matrix[period] && matrix[period][dCode] === true;
+                    if(isSubmitted) {
+                        html += `<td class="px-6 py-4 text-center border-l border-slate-100"><div class="mx-auto w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 font-black shadow-sm ring-2 ring-emerald-50">✓</div></td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 text-center border-l border-slate-100"><div class="mx-auto w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-400 font-black shadow-sm">✗</div></td>`;
+                    }
+                });
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        // --- View 1: Performance Logic (Original) ---
+        async function fetchPerformanceData() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_DATA_URL);
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    if (result.data && result.data.length > 0) {
+                        globalData = result.data;
+                        processRawData();
+                    } else {
+                        document.getElementById('loadingState').innerHTML = `<p class="text-slate-500 font-medium">Tiada jadual ditemui atau format jadual kurang tepat.</p>`;
+                    }
+                } else {
+                    document.getElementById('loadingState').innerHTML = `<p class="text-red-500 font-medium">Ralat kutipan data:</p><p class="text-red-400 text-sm mt-2">${result.message}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('loadingState').innerHTML = `<p class="text-red-500 font-medium">Gagal menghubungi server.</p><p class="text-red-400 text-sm mt-2">${error.message}</p>`;
+            }
+        }
+
+        function processRawData() {
+            let firstData = globalData.find(d => d.period && d.period.trim() !== "");
+            let monitoringPeriod = firstData ? firstData.period : "JAN-MAC";
+            document.getElementById('periodBadge').innerText = `DATA SEMASA: ${monitoringPeriod}`;
+
+            let focusSet = new Set();
+            
+            globalData.forEach(dist => {
+                let currentFocus = "";
+                let focusCounter = 0;
+                let indCounter = 0;
+                
+                dist.indicators.forEach(ind => {
+                    let f = ind.focus || "Semua Fokus";
+                    if(f !== currentFocus) {
+                        currentFocus = f;
+                        focusCounter++;
+                        indCounter = 1;
+                    } else {
+                        indCounter++;
+                    }
+                    ind.displayName = focusCounter + "." + indCounter + " " + ind.name;
+                });
+            });
+
+            let kedahObj = globalData.find(d => d.district === "KEDAH");
+            if(kedahObj && kedahObj.indicators) {
+                kedahObj.indicators.forEach(ind => {
+                    focusSet.add(ind.focus || "Semua Fokus");
+                });
+            }
+
+            const fokusSelector = document.getElementById('fokusSelector');
+            fokusSelector.innerHTML = '';
+            Array.from(focusSet).forEach(f => {
+                let option = document.createElement('option');
+                option.value = f;
+                option.text = f;
+                fokusSelector.appendChild(option);
+            });
+
+            updateIndicatorDropdown();
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+        }
+
+        function updateIndicatorDropdown() {
+            const selectedFocus = document.getElementById('fokusSelector').value;
+            const indicatorSelector = document.getElementById('indicatorSelector');
+            indicatorSelector.innerHTML = '';
+
+            let kedahObj = globalData.find(d => d.district === "KEDAH");
+            if(kedahObj && kedahObj.indicators) {
+                kedahObj.indicators.forEach(ind => {
+                    let indFocus = ind.focus || "Semua Fokus";
+                    if(indFocus === selectedFocus) {
+                        let option = document.createElement('option');
+                        option.value = ind.name;
+                        option.text = ind.displayName;
+                        indicatorSelector.appendChild(option);
+                    }
+                });
+            }
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const selectedIndicator = document.getElementById('indicatorSelector').value;
+            
+            let rawRows = [];
+            let displayTargetStr = "0";
+            let globalTargetValForChart = 0;
+
+            globalData.forEach(dist => {
+                let indData = dist.indicators.find(i => i.name === selectedIndicator);
+                if(indData) {
+                    let rawTargetStr = String(indData.target || "0").trim();
+                    let match = rawTargetStr.match(/[\d.]+/);
+                    let chartNumericTarget = match ? parseFloat(match[0]) : 0;
+                    
+                    if (chartNumericTarget > 0 && chartNumericTarget <= 1 && rawTargetStr.indexOf('%') === -1) {
+                       chartNumericTarget = chartNumericTarget * 100;
+                    }
+
+                    if (dist.district === "KEDAH") {
+                        displayTargetStr = rawTargetStr; 
+                        globalTargetValForChart = chartNumericTarget;
+                    }
+                    
+                    let perfValue = 0;
+                    if(indData.denom > 0) {
+                        perfValue = (indData.num / indData.denom) * 100;
+                    }
+
+                    rawRows.push({
+                        district: dist.district,
+                        isKedah: dist.district === "KEDAH",
+                        targetVal: chartNumericTarget,
+                        targetStr: rawTargetStr,
+                        num: indData.num,
+                        denom: indData.denom,
+                        perf: perfValue
+                    });
+                }
+            });
+
+            rawRows.sort((a, b) => {
+                if (a.isKedah) return 1;
+                if (b.isKedah) return -1;
+                return a.district.localeCompare(b.district);
+            });
+
+            let tableRows = rawRows;
+            let chartLabels = [];
+            let chartData = [];
+            
+            const tbody = document.getElementById('districtTableBody');
+            tbody.innerHTML = '';
+            tableRows.forEach(row => {
+                chartLabels.push(row.isKedah ? "KEDAH (NEGERI)" : row.district.replace("PKD ", ""));
+                chartData.push(row.perf);
+
+                let badgeClass = 'perf-badge-low';
+                if(row.perf >= row.targetVal) badgeClass = 'perf-badge-high';
+                else if(row.perf >= (row.targetVal * 0.8)) badgeClass = 'perf-badge-med';
+
+                const tr = document.createElement('tr');
+                tr.className = `border-b transition-colors hover:bg-slate-50 ${row.isKedah ? 'kedah-row' : 'bg-white'}`;
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold ${row.isKedah ? 'text-indigo-900' : 'text-slate-700'}">${row.district}</td>
+                    <td class="px-6 py-4 text-center text-slate-500 font-extrabold">${row.targetStr}</td>
+                    <td class="px-6 py-4 text-right font-bold text-slate-700">${row.num.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-right font-bold text-slate-700">${row.denom.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="perf-badge ${badgeClass} shadow-sm">${row.perf.toFixed(1)}%</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                if(row.isKedah) {
+                    document.getElementById('kedahPerf').innerText = row.perf.toFixed(1) + '%';
+                    document.getElementById('kedahTargetBadge').innerText = `Sasaran JKNK: ${row.targetStr}`;
+                    document.getElementById('kedahNum').innerText = row.num.toLocaleString();
+                    document.getElementById('kedahDenom').innerText = row.denom.toLocaleString();
+                }
+            });
+
+            drawChart(chartLabels, chartData, globalTargetValForChart, displayTargetStr);
+        }
+
+        function drawChart(labels, data, targetLineValue, targetStringDisplay) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            const colors = labels.map(l => l.includes("KEDAH") ? 'rgba(79, 70, 229, 0.95)' : 'rgba(129, 140, 248, 0.85)');
+            const borderColors = labels.map(l => l.includes("KEDAH") ? 'rgba(49, 46, 129, 1)' : 'rgba(99, 102, 241, 1)');
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pencapaian (%)',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        barPercentage: 0.65
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleFont: { size: 14, family: 'Inter', weight: 'bold' },
+                            bodyFont: { size: 15, family: 'Inter', weight: 'bold' },
+                            padding: 14,
+                            cornerRadius: 8,
+                            callbacks: { label: function(context) { return ' Pencapaian: ' + context.parsed.y.toFixed(1) + '%'; } }
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    yMin: targetLineValue,
+                                    yMax: targetLineValue,
+                                    borderColor: 'rgb(239, 68, 68)',
+                                    borderWidth: 2.5,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        display: true,
+                                        content: `Sasaran Semasa: ${targetStringDisplay}`,
+                                        position: 'start',
+                                        backgroundColor: 'rgba(239, 68, 68, 0.95)',
+                                        color: 'white',
+                                        font: { family: 'Inter', size: 12, weight: 'bold'},
+                                        padding: 8,
+                                        borderRadius: 6
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: targetLineValue > 100 ? targetLineValue + 10 : (Math.max(...data) > 100 ? Math.max(...data) + 10 : Math.max(100, Math.max(...data) + 10)),
+                            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+                            title: { display: true, text: 'Peratusan Prestasi Kesihatan (%)', font: {family:'Inter', weight:'bold', size: 12}, color: '#64748b' },
+                            ticks: { font: {family:'Inter', weight: 'bold'} }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: {family:'Inter', weight: 'bold'}, color: function(ctx) { return ctx.tick.label.includes('KEDAH') ? '#312e81' : '#64748b'; } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize First View Only
+        window.addEventListener('DOMContentLoaded', fetchPerformanceData);
+    </script>
+</body>
+</html>
