@@ -277,6 +277,15 @@
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-submission').classList.add('hidden');
             document.getElementById('view-' + viewName).classList.remove('hidden');
+            
+            document.getElementById('btn-nav-dashboard').className = viewName === 'dashboard' 
+                ? "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30"
+                : "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white";
+                
+            document.getElementById('btn-nav-submission').className = viewName === 'submission' 
+                ? "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30"
+                : "flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white";
+                
             if (window.innerWidth < 768) toggleSidebar();
             refreshCurrentView();
         }
@@ -299,7 +308,6 @@
                 let pptx = new PptxGenJS();
                 pptx.layout = 'LAYOUT_16x9';
 
-                // Deduplicate indicators from KEDAH to know all available indicators
                 let kedahDist = globalData.find(d => d.district === "KEDAH");
                 let indicatorsToExport = kedahDist ? kedahDist.indicators : [];
 
@@ -308,7 +316,7 @@
                     let slide = pptx.addSlide();
                     
                     let focusText = indData.focus || "Semua Fokus";
-                    let indText = indData.displayName; // has "1.1 etc"
+                    let indText = indData.displayName; 
                     let targetRaw = String(indData.target || "0");
                     let match = targetRaw.match(/[\d.]+/);
                     let targetNum = match ? parseFloat(match[0]) : 0;
@@ -332,7 +340,6 @@
                     // Gather Data
                     let cLabels = [];
                     let cValues = [];
-                    let cColors = [];
                     
                     // Table Rows
                     let rowLabels = [{ text: '', options: { fill:'E2E8F0', bold:true, border:{pt:1,color:'FFFFFF'} } }];
@@ -351,7 +358,6 @@
                             let shortLabel = findShort ? findShort[1] : nameAbr.replace("PKD ", "");
                             if(isKedah) shortLabel = "KEDAH";
 
-                            // Capitalize nicely
                             shortLabel = shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1).toLowerCase();
                             if(shortLabel.includes('.')) {
                                 let parts = shortLabel.split('.');
@@ -366,7 +372,6 @@
                         }
                     });
 
-                    // Sort to match activeDistrictOrder
                     rawRows.sort((a,b) => {
                         return activeDistrictOrder.indexOf(a.shortLabel) - activeDistrictOrder.indexOf(b.shortLabel);
                     });
@@ -374,8 +379,6 @@
                     rawRows.forEach(r => {
                         cLabels.push(r.shortLabel);
                         cValues.push(Number(r.perfValue.toFixed(1)));
-                        // We cannot assign per-bar colors straightforwardly in combo chart but PPTX Gen JS handles single color array wrapping.
-                        // We will rely on chartColors for the series.
                         
                         rowLabels.push({ text: r.shortLabel, options: { fill:'F8FAFC', fontFace:'Arial', fontSize:9, align:'center', bold:r.isKedah, border:{pt:1,color:'FFFFFF'} } });
                         rowNume.push({ text: String(r.num), options: { fill: r.isKedah?'4F46E5':'93C5FD', color: r.isKedah?'FFFFFF':'000000', align:'center', fontFace:'Arial', fontSize:10, bold: r.isKedah, border:{pt:1,color:'FFFFFF'} } });
@@ -402,7 +405,7 @@
                         x: 0.2, y: 1.5, w: 9.6, h: 3.2, 
                         showLegend: false, 
                         valAxisMinVal: 0, valAxisMaxVal: dMax, valGridLine: { style:'none' },
-                        catAxisLabelPos: 'none' // Hide cat labels because we use table
+                        catAxisLabelPos: 'none' 
                     });
 
                     slide.addTable([rowLabels, rowNume, rowDeno], { 
@@ -420,8 +423,52 @@
             }
         }
 
-        async function fetchSubmissionData() { ... }
-        function renderSubmissionTable(matrix) { ... }
+        async function fetchSubmissionData() {
+            document.getElementById('submissionContent').classList.add('hidden');
+            const loader = document.getElementById('loadingStateSubmission');
+            loader.classList.remove('hidden');
+            
+            if(APPS_SCRIPT_SUBMISSION_URL === "<!-- MASUKKAN_URL_BARU_DI_SINI -->") {
+                loader.innerHTML = `<p class="text-amber-500 font-bold mb-2">Tindakan Diperlukan</p><p class="text-slate-600 text-sm max-w-md mx-auto">Sila Deploy skrip Google Apps baharu dan gantikan URL <code>APPS_SCRIPT_SUBMISSION_URL</code> di dalam fail HTML ini.</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(APPS_SCRIPT_SUBMISSION_URL);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.submissionMatrix) {
+                    renderSubmissionTable(result.submissionMatrix);
+                    loader.classList.add('hidden');
+                    document.getElementById('submissionContent').classList.remove('hidden');
+                } else {
+                    loader.innerHTML = `<p class="text-red-500 font-medium">Ralat kutipan status</p>`;
+                }
+            } catch(e) {
+                loader.innerHTML = `<p class="text-red-500 font-medium">Gagal memuat turun data matrix: ${e.message}</p>`;
+            }
+        }
+
+        function renderSubmissionTable(matrix) {
+            const tbody = document.getElementById('submissionTableBody');
+            tbody.innerHTML = '';
+            Object.keys(distMap).forEach(dCode => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-slate-50/50 bg-white';
+                let html = `<td class="px-6 py-4 font-bold text-slate-800">${distMap[dCode]} <span class="ml-2 text-[10px] text-slate-400 font-normal bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${dCode}</span></td>`;
+                periodsArr.forEach(period => {
+                    const isSubmitted = matrix[period] && matrix[period][dCode] === true;
+                    if(isSubmitted) {
+                        html += `<td class="px-6 py-4 text-center border-l border-slate-100"><div class="mx-auto w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 font-black shadow-sm">✓</div></td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 text-center border-l border-slate-100"><div class="mx-auto w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-400 font-black shadow-sm">✗</div></td>`;
+                    }
+                });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
         async function fetchPerformanceData() {
             document.getElementById('loadingState').classList.remove('hidden');
             document.getElementById('dashboardContent').classList.add('hidden');
@@ -549,20 +596,17 @@
             drawChart(chartLabels, chartData, globalTargetValForChart, displayTargetStr);
         }
 
-        // Keep rest of code hidden for brevity but ensure drawChart and fetchSubmission exist...
         function drawChart(labels, data, targetLineValue, targetStringDisplay) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: labels, datasets: [{ label: 'Pencapaian (%)', data: data, backgroundColor: labels.map(l => l.includes("KEDAH") ? 'rgba(79, 70, 229, 0.95)' : 'rgba(129, 140, 248, 0.85)'), borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                 scales: { y: { beginAtZero: true } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+                annotation: { annotations: { line1: { type: 'line', yMin: targetLineValue, yMax: targetLineValue, borderColor: 'rgb(239, 68, 68)', borderWidth: 2, borderDash: [6, 6] } } }
+                }, scales: { y: { beginAtZero: true } } }
             });
         }
-        
-        async function fetchSubmissionData() { /* original logic */ }
-        function renderSubmissionTable(matrix) { /* original logic */ }
 
         window.addEventListener('DOMContentLoaded', fetchPerformanceData);
     </script>
