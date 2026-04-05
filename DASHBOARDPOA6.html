@@ -585,8 +585,8 @@
                     let info = indicatorMapping[idx] || { f: 0, c: idx + 1, title: "Lain-lain", name: ind.name };
                     if (info.f === 0) return; // Skip out-of-bounds just in case
 
-                    // Ganti nama dengan nama penuh jika backend gagal membaca nama yang sebenar
-                    if(ind.name.includes("Tiada Data") || ind.name.includes("Ralat Fail") || ind.name.startsWith("Indikator")) {
+                    // Ganti nama dengan nama penuh jika backend memulangkan rentetan kosong, Tiada Data, dsb.
+                    if(!ind.name || ind.name.trim() === "" || ind.name.includes("Tiada Data") || ind.name.includes("Ralat Fail") || ind.name.startsWith("Indikator")) {
                         ind.name = info.name;
                     }
 
