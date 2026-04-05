@@ -272,8 +272,8 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_DATA_URL = "https://script.google.com/macros/s/AKfycbxhyiGjFbqlUQtqlZAHxwtSA1eWKi735tKEk6-cKYLj5bKnofvMMblKDTw_2VYTd0Oo-A/exec"; 
-        const APPS_SCRIPT_SUBMISSION_URL = "https://script.google.com/macros/s/AKfycbxhyiGjFbqlUQtqlZAHxwtSA1eWKi735tKEk6-cKYLj5bKnofvMMblKDTw_2VYTd0Oo-A/exec";
+        const APPS_SCRIPT_DATA_URL = "https://script.google.com/macros/s/AKfycbz7MQpMEfPNGoFoklfmI_96DZvPFX2RD9rp0BgymsbwGNxj_1pK2XUtKnowCKoo5nmoUA/exec"; 
+        const APPS_SCRIPT_SUBMISSION_URL = "https://script.google.com/macros/s/AKfycbz7MQpMEfPNGoFoklfmI_96DZvPFX2RD9rp0BgymsbwGNxj_1pK2XUtKnowCKoo5nmoUA/exec";
 
         Chart.register(window['chartjs-plugin-annotation']);
 
@@ -375,7 +375,7 @@
 
                     let rawRows = [];
                     globalData.forEach(distObj => {
-                        let indMatch = distObj.indicators.find(ind => ind.name === indData.name);
+                        let indMatch = distObj.indicators.find(ind => ind.activityNum === indData.activityNum);
                         if(indMatch) {
                             let isKedah = distObj.district === "KEDAH";
                             let nameAbr = distObj.district;
@@ -539,52 +539,56 @@
         function processRawData() {
             let focusSet = new Set();
             
-            // Mapping configuration EXACTLY as per the new image reference
+            // Mapping configuration EXACTLY as per the Excel image reference (37 indicators)
             const indicatorMapping = [
-                { f: 1, c: "1.1", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 1, c: "1.2", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 1, c: "1.3", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 2, c: "2.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "2.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "3.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "3.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.3", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.3", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.4", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.5", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.6", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 3, c: "6.1", title: "FOKUS 3: HIPERTENSI" },
-                { f: 3, c: "6.2", title: "FOKUS 3: HIPERTENSI" },
-                { f: 3, c: "6.3", title: "FOKUS 3: HIPERTENSI" },
-                { f: 4, c: "7.1", title: "FOKUS 4: SARINGAN NCD" },
-                { f: 4, c: "7.2", title: "FOKUS 4: SARINGAN NCD" },
-                { f: 5, c: "8.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "8.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.3", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.4", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.5", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.6", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "10.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "10.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 0, c: "SKIP", title: "HEADER" }, // Melangkau Cell B57
-                { f: 6, c: "11.1", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.2", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.3", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.4", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.5", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.6", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" }
+                { f: 1, c: "1.1", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus saringan kanser kolorektal dilakukan (Jumlah saringan iFOBT)" },
+                { f: 1, c: "1.2", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus saringan ulangan dijalankan untuk klien dengan iFOBT negatif pada saringan 2 tahun sebelumnya" },
+                { f: 1, c: "1.3", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus klien dengan iFOBT positif diberikan intervensi" },
+                { f: 2, c: "2.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Bilangan Bengkel CPG Diabetes dianjurkan di peringkat daerah" },
+                { f: 2, c: "2.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus KK dengan FMS yang menjalankan ≥4 CBD setahun berkaitan pengendalian kes DM" },
+                { f: 2, c: "3.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus KK yang mempunyai sekurang-kurangnya 1 Diabetes Educator" },
+                { f: 2, c: "3.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus sesi DE yang dijalankan di klinik kesihatan (sekurang-kurangnya 2 sesi seminggu)" },
+                { f: 2, c: "4.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes aktif dikemaskini di dalam sistem NDR sebelum 30 Jun 2026" },
+                { f: 2, c: "4.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan bacaan HbA1C ≤6.5" },
+                { f: 2, c: "4.3", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan bacaan HbA1C <7.0" },
+                { f: 2, c: "5.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit Diabetes dengan bacaan LDL ≤2.6 mmol/L" },
+                { f: 2, c: "5.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes menjalani pemeriksaan Visual Acuity setahun sekali" },
+                { f: 2, c: "5.3", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan VA ≤6/18 menjalani saringan fundus setahun sekali" },
+                { f: 2, c: "5.4", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan Urine Protein negatif menjalani pemeriksaan Urine Microalbuminuria setahun sekali" },
+                { f: 2, c: "5.5", title: "FOKUS 2: DIABETES MELLITUS", name: "Sistem Pengesanan Keciciran (Defaulter Tracing) diwujudkan dan dilaksanakan di semua klinik kesihatan yang merawat pesakit NCD" },
+                { f: 2, c: "5.6", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratusan pesakit NCD (Diabetes & Hipertensi) tercicir rawatan (Defaulted)" },
+                { f: 3, c: "6.1", title: "FOKUS 3: HIPERTENSI", name: "Peratus kes DIAGNOSA BAHARU HIPERTENSI didaftarkan dalam National Hipertension Registry (NHR) di klinik kesihatan dalam tempoh 3 bulan" },
+                { f: 3, c: "6.2", title: "FOKUS 3: HIPERTENSI", name: "Peratus kes AKTIF hipertensi dikemaskini pada tahun semasa" },
+                { f: 3, c: "6.3", title: "FOKUS 3: HIPERTENSI", name: "Peratus pesakit hipertensi yang diaudit mempunyai tekanan darah yang terkawal <140/90 mmHg" },
+                { f: 4, c: "7.1", title: "FOKUS 4: SARINGAN NCD", name: "Jumlah saringan NCD yang dijalankan" },
+                { f: 4, c: "7.2", title: "FOKUS 4: SARINGAN NCD", name: "Peratus individu yang menjalani saringan kesihatan NHSI / PEKA B40, disaring kesihatan mental" },
+                { f: 5, c: "8.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan libat urus bersama rakan strategik diadakan" },
+                { f: 5, c: "8.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan Bengkel Latihan GSiM dianjurkan di peringkat daerah" },
+                { f: 5, c: "9.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus saringan kesihatan yang dijalankan di setiap lokaliti" },
+                { f: 5, c: "9.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti yang mencapai sasaran saringan kesihatan yang ditetapkan" },
+                { f: 5, c: "9.3", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus individu berisiko dirujuk ke klinik kesihatan berhampiran mengikut kriteria rujukan yang ditetapkan" },
+                { f: 5, c: "9.4", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti dengan ≥70% program kemasyarakatan dianjurkan secara sihat" },
+                { f: 5, c: "9.5", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti yang mempunyai ≥10% rumah menyertai Rumah Bebas Asap Rokok (RBAR)" },
+                { f: 5, c: "9.6", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan lokaliti yang menjalankan program skop KOSPEN secara berkala" },
+                { f: 5, c: "10.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan latihan penggunaan system myVas untuk GSiM" },
+                { f: 5, c: "10.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan data yang dimasukkan ke dalam sistem MyVas" },
+                { f: 6, c: "11.1", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di IPT atau Institusi Pendidikan" },
+                { f: 6, c: "11.2", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Sekolah Menengah" },
+                { f: 6, c: "11.3", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Sekolah Rendah" },
+                { f: 6, c: "11.4", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Rumah Ibadat (Seminar/ Ceramah)" },
+                { f: 6, c: "11.5", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di CME / Webinar (online)" },
+                { f: 6, c: "11.6", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Tempat Kerja (Awam / Swasta)" }
             ];
 
             globalData.forEach(dist => {
                 dist.indicators.forEach((ind, idx) => {
-                    let info = indicatorMapping[idx] || { f: 0, c: idx + 1, title: "Lain-lain" };
+                    let info = indicatorMapping[idx] || { f: 0, c: idx + 1, title: "Lain-lain", name: ind.name };
                     if (info.f === 0) return; // Skip out-of-bounds just in case
+
+                    // Ganti nama dengan nama penuh jika backend gagal membaca nama yang sebenar
+                    if(ind.name.includes("Tiada Data") || ind.name.includes("Ralat Fail") || ind.name.startsWith("Indikator")) {
+                        ind.name = info.name;
+                    }
 
                     ind.focus = info.title;
                     ind.focusNum = info.f;
@@ -623,7 +627,7 @@
                     let indFocus = ind.focus || "Semua Fokus";
                     if(indFocus === selectedFocus) {
                         let option = document.createElement('option');
-                        option.value = ind.name; option.text = ind.displayName;
+                        option.value = ind.activityNum; option.text = ind.displayName;
                         indicatorSelector.appendChild(option);
                     }
                 });
@@ -636,7 +640,7 @@
             let rawRows = []; let displayTargetStr = "0"; let globalTargetValForChart = 0;
 
             globalData.forEach(dist => {
-                let indData = dist.indicators.find(i => i.name === selectedIndicator);
+                let indData = dist.indicators.find(i => i.activityNum === selectedIndicator);
                 if(indData) {
                     let rawTargetStr = String(indData.target || "0").trim();
                     let match = rawTargetStr.match(/[\d.]+/);
@@ -663,7 +667,7 @@
             });
 
             // Ganti nama tajuk jadual dan carta mengikut indikator yang dipilih
-            let indTitleMatch = globalData[0].indicators.find(i => i.name === selectedIndicator);
+            let indTitleMatch = globalData[0].indicators.find(i => i.activityNum === selectedIndicator);
             let displayIndTitle = indTitleMatch ? indTitleMatch.displayName : "Prestasi Mengikut Daerah";
             
             let tableHeaderTitle = document.getElementById('tableHeaderTitle');
