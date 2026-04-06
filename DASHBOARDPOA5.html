@@ -100,7 +100,7 @@
                     </button>
                     <div>
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-800" id="headerTitle">Papan Pemuka NCD</h1>
-                        <p class="text-xs sm:text-sm text-indigo-600 font-bold tracking-wide">Analitik Prestasi POA 2026</p>
+                        <p class="text-xs sm:text-sm text-indigo-600 font-bold tracking-wide" id="periodBadge">Sistem Analitik Data</p>
                     </div>
                 </div>
                 <div class="flex items-center">
@@ -131,30 +131,18 @@
                 <div id="dashboardContent" class="hidden space-y-8">
                     <!-- CONTROLS: Fokus & Indicator Dropdowns -->
                     <section class="glass-card rounded-3xl p-6 shadow-sm border-t-[5px] border-indigo-500">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                             <div>
-                                <label for="periodSelector" class="flex items-center text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">
-                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">1</span> 
-                                    Tempoh Pemantauan
-                                </label>
-                                <select id="periodSelector" onchange="fetchPerformanceData()" class="bg-indigo-50 border border-indigo-100 text-indigo-900 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:bg-white cursor-pointer">
-                                    <option value="JAN-MAC">JAN - MAC</option>
-                                    <option value="JAN-JUN">JAN - JUN</option>
-                                    <option value="JAN-SEPT">JAN - SEPT</option>
-                                    <option value="JAN-DIS">JAN - DIS</option>
-                                </select>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="fokusSelector" class="flex items-center text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">
-                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">2</span> 
+                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">1</span> 
                                     Pilih Fokus Utama
                                 </label>
-                                <select id="fokusSelector" onchange="updateIndicatorDropdown()" class="bg-white border border-slate-300 text-indigo-900 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:bg-slate-50 cursor-pointer placeholder-indigo-300">
+                                <select id="fokusSelector" onchange="updateIndicatorDropdown()" class="bg-indigo-50 border border-indigo-100 text-indigo-900 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:bg-white cursor-pointer placeholder-indigo-300">
                                 </select>
                             </div>
                             <div>
                                 <label for="indicatorSelector" class="flex items-center text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-wider">
-                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">3</span> 
+                                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">2</span> 
                                     Indikator Spesifik
                                 </label>
                                 <select id="indicatorSelector" onchange="renderDashboard()" class="bg-white border border-slate-300 text-slate-800 text-sm font-bold rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3.5 shadow-sm transition-all hover:border-slate-400 cursor-pointer">
@@ -183,26 +171,28 @@
                             </div>
                         </div>
                     </section>
-                    
-                    <!-- Table section (Dipindahkan ke atas Carta) -->
-                    <section class="glass-card rounded-3xl overflow-hidden shadow-md border border-slate-200">
-                        <div class="px-6 py-5 bg-gradient-to-r from-white to-slate-50 border-b border-slate-100 flex items-center justify-between">
-                            <h2 class="text-lg font-extrabold text-slate-800 flex items-center" id="tableHeaderTitle">
-                                <div class="bg-indigo-100 p-2 rounded-lg mr-3 shadow-sm">
-                                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                </div>
-                                Jadual Perincian Mengikut Daerah
-                            </h2>
+
+                    <!-- Chart section -->
+                    <section class="glass-card rounded-3xl p-6 shadow-md border border-slate-200">
+                        <h2 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center">
+                            Prestasi Mengikut Daerah
+                        </h2>
+                        <div class="relative h-96 w-full">
+                            <canvas id="performanceChart"></canvas>
                         </div>
+                    </section>
+
+                    <!-- Table section -->
+                    <section class="glass-card rounded-3xl overflow-hidden shadow-md border border-slate-200">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-slate-600">
                                 <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200 font-bold">
                                     <tr>
                                         <th scope="col" class="px-6 py-4 tracking-wider">Daerah</th>
                                         <th scope="col" class="px-6 py-4 tracking-wider text-center">Sasaran</th>
-                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Numerator (A)</th>
-                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Denominator (B)</th>
-                                        <th scope="col" class="px-6 py-4 tracking-wider text-center">Pencapaian (%)</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Numerator</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-right">Denominator</th>
+                                        <th scope="col" class="px-6 py-4 tracking-wider text-center">Pencapaian</th>
                                     </tr>
                                 </thead>
                                 <tbody id="districtTableBody" class="divide-y divide-slate-100">
@@ -211,20 +201,6 @@
                             </table>
                         </div>
                     </section>
-
-                    <!-- Chart section -->
-                    <section class="glass-card rounded-3xl p-6 shadow-md border border-slate-200">
-                        <h2 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center" id="chartHeaderTitle">
-                            <div class="bg-indigo-100 p-2 rounded-lg mr-3 shadow-sm">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                            </div>
-                            Prestasi Mengikut Daerah
-                        </h2>
-                        <div class="relative h-96 w-full">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </section>
-
                 </div>
             </div>
 
@@ -261,19 +237,12 @@
                 </div>
             </div>
 
-            <!-- Footer Hakcipta -->
-            <footer class="mt-12 mb-4 text-center text-slate-400 text-[11px] font-semibold tracking-wider leading-relaxed border-t border-slate-200 pt-6 uppercase">
-                <p>Hakcipta Terpelihara 2026</p>
-                <p>Unit Kawalan Penyakit Tidak Berjangkit (NCD)</p>
-                <p>Jabatan Kesihatan Negeri Kedah</p>
-            </footer>
-
         </main>
     </div>
 
     <script>
-        const APPS_SCRIPT_DATA_URL = "https://script.google.com/macros/s/AKfycby_tw4gkNt5V3ba3s8gUbBjULV2vJ8EaOE0gB-dc6HWrgvhmUobFgXqN5m9atCNfZMmaA/exec"; 
-        const APPS_SCRIPT_SUBMISSION_URL = "https://script.google.com/macros/s/AKfycby_tw4gkNt5V3ba3s8gUbBjULV2vJ8EaOE0gB-dc6HWrgvhmUobFgXqN5m9atCNfZMmaA/exec";
+        const APPS_SCRIPT_DATA_URL = "https://script.google.com/macros/s/AKfycbwhtpW_mW-O7P33ihQ1VDsqDHZlj0E4XmJPGwC-ChrZFu0L1Ld9FlmLjB5m5ZquJgVW/exec"; 
+        const APPS_SCRIPT_SUBMISSION_URL = "https://script.google.com/macros/s/AKfycbxRUbypVqqyrNjs5NLmnmQWlDUuSDcIJZQe3_fHEirKgMNZjIr9MwUDGJoowQaXoDg4Kg/exec";
 
         Chart.register(window['chartjs-plugin-annotation']);
 
@@ -288,6 +257,47 @@
         };
         const activeDistrictOrder = ["Baling", "B.Baharu", "K.Setar", "K.Muda", "K.Pasu", "Kulim", "Langkawi", "P.Terap", "Pendang", "Sik", "Yan", "KEDAH"];
         const periodsArr = ["JAN-MAC", "JAN-JUN", "JAN-SEPT", "JAN-DIS"];
+
+        // Konfigurasi Mapping Rasmi Terbaru (37 Indikator)
+        const indicatorMapping = [
+            { f: 1, c: "1.1", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus saringan kanser kolorektal dilakukan (Jumlah saringan iFOBT)" },
+            { f: 1, c: "1.2", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus saringan ulangan dijalankan untuk klien dengan iFOBT negatif pada saringan 2 tahun sebelumnya" },
+            { f: 1, c: "1.3", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL", name: "Peratus klien dengan iFOBT positif diberikan intervensi (dirujuk untuk ujian kolonoskopi, atau pendidikan kesihatan bagi yang tidak bersetuju dirujuk)" },
+            { f: 2, c: "2.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Bilangan Bengkel CPG Diabetes dianjurkan di peringkat daerah" },
+            { f: 2, c: "2.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus KK dengan FMS yang menjalankan ≥4 CBD setahun berkaitan pengendalian kes DM" },
+            { f: 2, c: "3.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus KK yang mempunyai sekurang-kurangnya 1 Diabetes Educator" },
+            { f: 2, c: "3.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus sesi DE yang dijalankan di klinik kesihatan (sekurang-kurangnya 2 sesi seminggu)" },
+            { f: 2, c: "4.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes aktif dikemaskini di dalam sistem NDR sebelum 30 Jun 2026" },
+            { f: 2, c: "4.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan bacaan HbA1C ≤6.5" },
+            { f: 2, c: "4.3", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan bacaan HbA1C <7.0" },
+            { f: 2, c: "5.1", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit Diabetes dengan bacaan LDL ≤2.6 mmol/L" },
+            { f: 2, c: "5.2", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes menjalani pemeriksaan Visual Acuity setahun sekali" },
+            { f: 2, c: "5.3", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan VA ≤6/18 menjalani saringan fundus setahun sekali" },
+            { f: 2, c: "5.4", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratus pesakit diabetes dengan Urine Protein negatif menjalani pemeriksaan Urine Microalbuminuria setahun sekali" },
+            { f: 2, c: "5.5", title: "FOKUS 2: DIABETES MELLITUS", name: "Sistem Pengesanan Keciciran (Defaulter Tracing) diwujudkan dan dilaksanakan di semua klinik kesihatan yang merawat pesakit NCD" },
+            { f: 2, c: "5.6", title: "FOKUS 2: DIABETES MELLITUS", name: "Peratusan pesakit NCD (Diabetes & Hipertensi) tercicir rawatan (Defaulted)" },
+            { f: 3, c: "6.1", title: "FOKUS 3: HIPERTENSI", name: "Peratus kes DIAGNOSA BAHARU HIPERTENSI didaftarkan dalam National Hipertension Registry (NHR) di klinik kesihatan dalam tempoh 3 bulan" },
+            { f: 3, c: "6.2", title: "FOKUS 3: HIPERTENSI", name: "Peratus kes AKTIF hipertensi dikemaskini pada tahun semasa" },
+            { f: 3, c: "6.3", title: "FOKUS 3: HIPERTENSI", name: "Peratus pesakit hipertensi yang diaudit mempunyai tekanan darah yang terkawal <140/90 mmHg" },
+            { f: 4, c: "7.1", title: "FOKUS 4: SARINGAN NCD", name: "Jumlah saringan NCD yang dijalankan" },
+            { f: 4, c: "7.2", title: "FOKUS 4: SARINGAN NCD", name: "Peratus individu yang menjalani saringan kesihatan NHSI / PEKA B40, disaring kesihatan mental" },
+            { f: 5, c: "8.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan libat urus bersama rakan strategik diadakan" },
+            { f: 5, c: "8.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan Bengkel Latihan GSiM dianjurkan di peringkat daerah" },
+            { f: 5, c: "9.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus saringan kesihatan yang dijalankan di setiap lokaliti" },
+            { f: 5, c: "9.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti yang mencapai sasaran saringan kesihatan yang ditetapkan" },
+            { f: 5, c: "9.3", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus individu berisiko dirujuk ke klinik kesihatan berhampiran mengikut kriteria rujukan yang ditetapkan" },
+            { f: 5, c: "9.4", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti dengan ≥70% program kemasyarakatan dianjurkan secara sihat" },
+            { f: 5, c: "9.5", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Peratus lokaliti yang mempunyai ≥10% rumah menyertai Rumah Bebas Asap Rokok (RBAR)" },
+            { f: 5, c: "9.6", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan lokaliti yang menjalankan program skop KOSPEN secara berkala" },
+            { f: 5, c: "10.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan latihan penggunaan system myVas untuk GSiM" },
+            { f: 5, c: "10.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)", name: "Bilangan data yang dimasukkan ke dalam sistem MyVas" },
+            { f: 6, c: "11.1", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di IPT atau Institusi Pendidikan" },
+            { f: 6, c: "11.2", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Sekolah Menengah" },
+            { f: 6, c: "11.3", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Sekolah Rendah" },
+            { f: 6, c: "11.4", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Rumah Ibadat (Seminar/ Ceramah)" },
+            { f: 6, c: "11.5", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di CME / Webinar (online)" },
+            { f: 6, c: "11.6", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852", name: "Bilangan program / promosi dijalankan di Tempat Kerja (Awam / Swasta)" }
+        ];
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -327,7 +337,6 @@
             } else fetchSubmissionData();
         }
 
-        // PPTX Export Feature
         async function exportToPPTX() {
             if(globalData.length === 0) {
                 alert("Sila tunggu sehingga data pencapaian siap dimuat turun dahulu.");
@@ -353,7 +362,6 @@
                     let targetNum = match ? parseFloat(match[0]) : 0;
                     if(targetNum > 0 && targetNum <= 1 && targetRaw.indexOf('%') === -1) targetNum = targetNum * 100;
 
-                    // 1. Header Design
                     slide.addShape(pptx.shapes.RECTANGLE, { x: 0, y: 0.2, w: 10, h: 0.5, fill: { color: '1A365D' } });
                     slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x: 0.2, y: 0.22, w: 1.5, h: 0.45, fill: { color: 'FFC000' } });
                     slide.addText(`FOKUS`, { x: 0.2, y: 0.22, w: 1.5, h: 0.45, color: '000000', align: 'center', bold: true, fontSize: 13, fontFace: 'Arial' });
@@ -364,43 +372,30 @@
                     slide.addText(`AKTIVITI`, { x: 0.2, y: 0.72, w: 1.5, h: 0.45, color: '000000', align: 'center', bold: true, fontSize: 12, fontFace: 'Arial' });
                     slide.addText(indText, { x: 1.8, y: 0.75, w: 8.0, h: 0.4, color: 'FFFFFF', bold: true, fontSize: 11, fontFace: 'Arial', valign: 'middle' });
 
-                    // Gather Data
+                    slide.addShape(pptx.shapes.PENTAGON, { x: 8.5, y: 1.5, w: 1.2, h: 1.2, fill: { color: 'DC2626' }, rotate: 90 });
+                    slide.addText(`Sasaran\n${targetRaw}`, { x: 8.5, y: 1.5, w: 1.2, h: 1.2, color: 'FFFFFF', align: 'center', bold: true, fontSize: 11 });
+
                     let cLabels = [];
                     let cValues = [];
-                    
-                    // Table Rows
                     let rowLabels = [{ text: '', options: { fill:'E2E8F0', bold:true, border:{pt:1,color:'FFFFFF'} } }];
                     let rowNume = [{ text: 'Nume', options: { fill:'93C5FD', bold:true, align:'center', border:{pt:1,color:'FFFFFF'} } }];
                     let rowDeno = [{ text: 'Deno', options: { fill:'1E3A8A', color:'FFFFFF', bold:true, align:'center', border:{pt:1,color:'FFFFFF'} } }];
 
                     let rawRows = [];
-                    globalData.forEach(distObj => {
-                        let indMatch = distObj.indicators.find(ind => ind.name === indData.name);
-                        if(indMatch) {
-                            let isKedah = distObj.district === "KEDAH";
-                            let nameAbr = distObj.district;
-                            // short format code
-                            let findShort = Object.entries(distMap).find(kv => kv[1].toUpperCase() === nameAbr.toUpperCase() || kv[0] === nameAbr.toUpperCase() || "PKD " + kv[1].toUpperCase() === nameAbr.toUpperCase());
-                            
-                            let shortLabel = findShort ? findShort[1] : nameAbr.replace("PKD ", "");
-                            if(isKedah) shortLabel = "KEDAH";
+                    activeDistrictOrder.forEach(distName => {
+                        let isKedah = distName === "KEDAH";
+                        let distObj = globalData.find(d => d.normalizedDistrict === distName);
+                        let perfValue = 0, num = 0, denom = 0;
 
-                            shortLabel = shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1).toLowerCase();
-                            if(shortLabel.includes('.')) {
-                                let parts = shortLabel.split('.');
-                                shortLabel = parts[0].toUpperCase() + "." + parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+                        if (distObj) {
+                            let indMatch = distObj.indicators.find(ind => ind.activityNum === indData.activityNum);
+                            if(indMatch) {
+                                num = indMatch.num; denom = indMatch.denom;
+                                if(denom > 0) perfValue = (num / denom) * 100;
                             }
-                            if(shortLabel === "Kedah") shortLabel = "KEDAH";
-
-                            let perfValue = 0;
-                            if(indMatch.denom > 0) perfValue = (indMatch.num / indMatch.denom) * 100;
-
-                            rawRows.push({ shortLabel, isKedah, perfValue, num:indMatch.num, denom:indMatch.denom });
                         }
-                    });
-
-                    rawRows.sort((a,b) => {
-                        return activeDistrictOrder.indexOf(a.shortLabel) - activeDistrictOrder.indexOf(b.shortLabel);
+                        
+                        rawRows.push({ shortLabel: distName, isKedah, perfValue, num, denom });
                     });
 
                     rawRows.forEach(r => {
@@ -416,37 +411,12 @@
                     if(Math.max(...cValues) > dMax) dMax = Math.max(...cValues) + 10;
 
                     let comboTypes = [
-                        {
-                            type: pptx.charts.BAR,
-                            data: [{ name: "Pencapaian", labels: cLabels, values: cValues }],
-                            options: { chartColors: ['0284C7'], showValue: true, dataLabelPosition: 'outEnd', dataLabelFormatCode: '0.0"%"', barDir:'col' }
-                        },
-                        {
-                            type: pptx.charts.LINE,
-                            data: [{ name: "Sasaran", labels: cLabels, values: cLabels.map(()=>targetNum) }],
-                            options: { chartColors: ['DC2626'], lineDash: 'dash', lineSize: 2 }
-                        }
+                        { type: pptx.charts.BAR, data: [{ name: "Pencapaian", labels: cLabels, values: cValues }], options: { chartColors: ['0284C7'], showValue: true, dataLabelPosition: 'outEnd', dataLabelFormatCode: '0.0"%"', barDir:'col' } },
+                        { type: pptx.charts.LINE, data: [{ name: "Sasaran", labels: cLabels, values: cLabels.map(()=>targetNum) }], options: { chartColors: ['DC2626'], lineDash: 'dash', lineSize: 2 } }
                     ];
 
-                    // Draw Chart FIRST
-                    slide.addChart(comboTypes, { 
-                        x: 0.1, y: 1.4, w: 9.8, h: 2.8, 
-                        showLegend: false, 
-                        valAxisMinVal: 0, valAxisMaxVal: dMax, valGridLine: { style:'none' },
-                        catAxisLabelPos: 'none' 
-                    });
-
-                    // Draw Target Badge AFTER chart (Bring to Front) and smaller
-                    slide.addShape(pptx.shapes.PENTAGON, { x: 9.1, y: 1.4, w: 0.7, h: 0.7, fill: { color: 'DC2626' }, rotate: 90 });
-                    slide.addText(`Sasaran\n${targetRaw}`, { x: 9.1, y: 1.4, w: 0.7, h: 0.7, color: 'FFFFFF', align: 'center', bold: true, fontSize: 8 });
-
-                    // Set precise column widths to prevent overlapping and move Y up
-                    let colWidths = [1.1, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.8];
-                    slide.addTable([rowLabels, rowNume, rowDeno], { 
-                        x: 0.1, y: 4.25, w: 9.7, rowH: 0.22, 
-                        colW: colWidths,
-                        border: { type:'solid', pt:1, color:'FFFFFF' } 
-                    });
+                    slide.addChart(comboTypes, { x: 0.2, y: 1.5, w: 9.6, h: 3.2, showLegend: false, valAxisMinVal: 0, valAxisMaxVal: dMax, valGridLine: { style:'none' }, catAxisLabelPos: 'none' });
+                    slide.addTable([rowLabels, rowNume, rowDeno], { x: 0.5, y: 4.8, w: 9.0, rowH: 0.25, border: { type:'solid', pt:1, color:'FFFFFF' } });
                 }
 
                 await pptx.writeFile({ fileName: "Pencapaian_NCD_POA.pptx" });
@@ -463,11 +433,6 @@
             const loader = document.getElementById('loadingStateSubmission');
             loader.classList.remove('hidden');
             
-            if(APPS_SCRIPT_SUBMISSION_URL === "<!-- MASUKKAN_URL_BARU_DI_SINI -->") {
-                loader.innerHTML = `<p class="text-amber-500 font-bold mb-2">Tindakan Diperlukan</p><p class="text-slate-600 text-sm max-w-md mx-auto">Sila Deploy skrip Google Apps baharu dan gantikan URL <code>APPS_SCRIPT_SUBMISSION_URL</code> di dalam fail HTML ini.</p>`;
-                return;
-            }
-
             try {
                 const response = await fetch(APPS_SCRIPT_SUBMISSION_URL);
                 const result = await response.json();
@@ -505,100 +470,60 @@
         }
 
         async function fetchPerformanceData() {
-            const selectedPeriod = document.getElementById('periodSelector').value;
-            const loader = document.getElementById('loadingState');
-            const content = document.getElementById('dashboardContent');
-            
-            loader.classList.remove('hidden');
-            loader.innerHTML = `<div class="spinner mb-6"></div><p class="text-slate-500 font-bold text-lg animate-pulse tracking-wide">Menganalisis data ${selectedPeriod}...</p>`;
-            content.classList.add('hidden');
-            
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
             try {
-                // Hantar parameter period ke Google Apps Script
-                const response = await fetch(`${APPS_SCRIPT_DATA_URL}?period=${selectedPeriod}`);
+                const response = await fetch(APPS_SCRIPT_DATA_URL);
                 const result = await response.json();
-                
                 if(result.status === 'success') {
                     if (result.data && result.data.length > 0) {
                         globalData = result.data;
                         processRawData();
-                        loader.classList.add('hidden');
-                        content.classList.remove('hidden');
-                    } else {
-                        loader.innerHTML = `<div class="bg-white p-12 rounded-3xl shadow-sm border border-slate-100"><div class="text-6xl mb-4">📂</div><p class="text-slate-400 font-extrabold text-2xl uppercase tracking-tighter">TIADA DATA DIKESAN</p><p class="text-slate-400 text-sm mt-2">Sila pastikan fail reten bagi tempoh <b>${selectedPeriod}</b> telah dimuat naik ke Google Drive.</p></div>`;
                     }
-                } else {
-                    loader.innerHTML = `<p class="text-red-500 font-bold">Ralat: ${result.message || 'Gagal memuat data'}</p>`;
                 }
-            } catch (error) { 
-                console.error(error);
-                loader.innerHTML = `<p class="text-red-500 font-bold">Ralat Rangkaian: Sila pastikan Apps Script Google telah di-Deploy sebagai 'Web App' dan akses diberikan kepada 'Anyone'.</p>`;
-            }
+            } catch (error) { console.error(error); }
         }
 
         function processRawData() {
+            let firstData = globalData.find(d => d.period && d.period.trim() !== "");
+            let monitoringPeriod = firstData ? firstData.period : "JAN-MAC";
+            document.getElementById('periodBadge').innerText = `DATA SEMASA: ${monitoringPeriod}`;
+
             let focusSet = new Set();
             
-            // Mapping configuration EXACTLY as per the new image reference
-            const indicatorMapping = [
-                { f: 1, c: "1.1", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 1, c: "1.2", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 1, c: "1.3", title: "FOKUS 1: SARINGAN KANSER KOLOREKTAL" },
-                { f: 2, c: "2.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "2.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "3.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "3.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "4.3", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.1", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.2", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.3", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.4", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.5", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 2, c: "5.6", title: "FOKUS 2: DIABETES MELLITUS" },
-                { f: 3, c: "6.1", title: "FOKUS 3: HIPERTENSI" },
-                { f: 3, c: "6.2", title: "FOKUS 3: HIPERTENSI" },
-                { f: 3, c: "6.3", title: "FOKUS 3: HIPERTENSI" },
-                { f: 4, c: "7.1", title: "FOKUS 4: SARINGAN NCD" },
-                { f: 4, c: "7.2", title: "FOKUS 4: SARINGAN NCD" },
-                { f: 5, c: "8.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "8.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.3", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.4", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.5", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "9.6", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "10.1", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 5, c: "10.2", title: "FOKUS 5: PEMERKASAAN KOMUNITI (KOSPEN)" },
-                { f: 0, c: "SKIP", title: "HEADER" }, // Melangkau Cell B57
-                { f: 6, c: "11.1", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.2", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.3", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.4", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.5", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" },
-                { f: 6, c: "11.6", title: "FOKUS 6: PEMERKASAAN PROGRAM ADVOKASI BAHAYA MEROKOK DAN AKTA 852" }
-            ];
+            // Normalize district names to standardized shortLabels for reliable finding later
+            globalData.forEach(dist => {
+               let origName = (dist.district || "").toUpperCase();
+               if(origName === "PKD KUALA MUDA") dist.normalizedDistrict = "K.Muda";
+               else if(origName === "PKD BALING") dist.normalizedDistrict = "Baling";
+               else if(origName === "PKD KOTA SETAR") dist.normalizedDistrict = "K.Setar";
+               else if(origName === "PKD BANDAR BAHARU") dist.normalizedDistrict = "B.Baharu";
+               else if(origName === "PKD KUBANG PASU") dist.normalizedDistrict = "K.Pasu";
+               else if(origName === "PKD KULIM") dist.normalizedDistrict = "Kulim";
+               else if(origName === "PKD LANGKAWI") dist.normalizedDistrict = "Langkawi";
+               else if(origName === "PKD PADANG TERAP") dist.normalizedDistrict = "P.Terap";
+               else if(origName === "PKD PENDANG") dist.normalizedDistrict = "Pendang";
+               else if(origName === "PKD SIK") dist.normalizedDistrict = "Sik";
+               else if(origName === "PKD YAN") dist.normalizedDistrict = "Yan";
+               else if(origName === "KEDAH") dist.normalizedDistrict = "KEDAH";
+               else dist.normalizedDistrict = origName;
+            });
 
             globalData.forEach(dist => {
                 dist.indicators.forEach((ind, idx) => {
-                    let info = indicatorMapping[idx] || { f: 0, c: idx + 1, title: "Lain-lain" };
-                    if (info.f === 0) return; // Skip out-of-bounds just in case
+                    // Match with our official 37 indicators mapping safely
+                    let info = indicatorMapping[idx] || { f: 0, c: idx + 1, title: "Lain-lain", name: ind.name };
+                    if (info.f === 0) return; 
 
                     ind.focus = info.title;
                     ind.focusNum = info.f;
                     ind.activityNum = info.c;
+                    // Provide the full mapping name robustly to avoid API variance
+                    ind.name = info.name;
                     ind.displayName = `${ind.activityNum} ${ind.name}`;
-                    ind.focusName = info.title;
+                    
+                    focusSet.add(ind.focus);
                 });
-                
-                // Filter out any unmapped indicators
-                dist.indicators = dist.indicators.filter(ind => ind.focusNum > 0);
-            });
-
-            globalData.forEach(d => {
-                d.indicators.forEach(ind => { focusSet.add(ind.focus); });
             });
 
             const fokusSelector = document.getElementById('fokusSelector');
@@ -609,6 +534,7 @@
                 fokusSelector.appendChild(option);
             });
             updateIndicatorDropdown();
+            
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
         }
@@ -617,13 +543,15 @@
             const selectedFocus = document.getElementById('fokusSelector').value;
             const indicatorSelector = document.getElementById('indicatorSelector');
             indicatorSelector.innerHTML = '';
-            let kedahObj = globalData.find(d => d.district === "KEDAH");
+            let kedahObj = globalData.find(d => d.normalizedDistrict === "KEDAH");
             if(kedahObj && kedahObj.indicators) {
                 kedahObj.indicators.forEach(ind => {
                     let indFocus = ind.focus || "Semua Fokus";
                     if(indFocus === selectedFocus) {
                         let option = document.createElement('option');
-                        option.value = ind.name; option.text = ind.displayName;
+                        // Use activityNum as the unique identifier
+                        option.value = ind.activityNum; 
+                        option.text = ind.displayName;
                         indicatorSelector.appendChild(option);
                     }
                 });
@@ -631,44 +559,75 @@
             renderDashboard();
         }
 
+        // Kira ambang sasaran mengikut tempoh pemantauan
+        function getPeriodThreshold(period, targetVal) {
+            const thresholds = { "JAN-MAC": 0.25, "JAN-JUN": 0.50, "JAN-SEPT": 0.75, "JAN-DIS": 1.00 };
+            return targetVal * (thresholds[period] || 1.00);
+        }
+
+        // Tentukan sama ada pencapaian dikira HIJAU atau MERAH
+        function isAchieved(perf, targetVal, period, activityNum) {
+            // Pengecualian 5.6: Pencapaian RENDAH adalah BAIK (defaulter - mesti < 10%)
+            if (activityNum === "5.6") {
+                // Jika sasaran ialah 0 atau tiada, gunakan 10% sebagai had
+                let inverseTarget = targetVal > 0 ? targetVal : 10;
+                return perf > 0 && perf < inverseTarget;
+            }
+            // Semua indikator lain: mesti capai ambang berdasarkan tempoh
+            if (perf === 0) return false;
+            let threshold = getPeriodThreshold(period, targetVal);
+            return perf >= threshold;
+        }
+
         function renderDashboard() {
-            const selectedIndicator = document.getElementById('indicatorSelector').value;
-            let rawRows = []; let displayTargetStr = "0"; let globalTargetValForChart = 0;
+            const selectedActivityNum = document.getElementById('indicatorSelector').value;
+            const selectedPeriod = document.getElementById('periodSelector').value;
+            let rawRows = []; 
+            let displayTargetStr = "0"; 
+            let globalTargetValForChart = 0;
 
-            globalData.forEach(dist => {
-                let indData = dist.indicators.find(i => i.name === selectedIndicator);
-                if(indData) {
-                    let rawTargetStr = String(indData.target || "0").trim();
-                    let match = rawTargetStr.match(/[\d.]+/);
-                    let chartNumericTarget = match ? parseFloat(match[0]) : 0;
-                    if (chartNumericTarget > 0 && chartNumericTarget <= 1 && rawTargetStr.indexOf('%') === -1) { chartNumericTarget = chartNumericTarget * 100; }
-                    if (dist.district === "KEDAH") { displayTargetStr = rawTargetStr; globalTargetValForChart = chartNumericTarget; }
-                    let perfValue = 0;
-                    if(indData.denom > 0) perfValue = (indData.num / indData.denom) * 100;
-
-                    let nameAbr = dist.district;
-                    let findShort = Object.entries(distMap).find(kv => kv[1].toUpperCase() === nameAbr.toUpperCase() || kv[0] === nameAbr.toUpperCase() || "PKD " + kv[1].toUpperCase() === nameAbr.toUpperCase());
-                    let shortLabel = findShort ? findShort[1] : nameAbr.replace("PKD ", "");
-                    if(dist.district === "KEDAH") shortLabel = "KEDAH";
-
-                    shortLabel = shortLabel.charAt(0).toUpperCase() + shortLabel.slice(1).toLowerCase();
-                    if(shortLabel.includes('.')) {
-                        let parts = shortLabel.split('.');
-                        shortLabel = parts[0].toUpperCase() + "." + parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+            // Cari nilai target global menggunakan KEDAH
+            let kedahData = globalData.find(d => d.normalizedDistrict === "KEDAH");
+            if (kedahData) {
+                let kedahInd = kedahData.indicators.find(i => i.activityNum === selectedActivityNum);
+                if (kedahInd) {
+                    displayTargetStr = String(kedahInd.target || "0").trim();
+                    let match = displayTargetStr.match(/[\d.]+/);
+                    globalTargetValForChart = match ? parseFloat(match[0]) : 0;
+                    if (globalTargetValForChart > 0 && globalTargetValForChart <= 1 && displayTargetStr.indexOf('%') === -1) {
+                        globalTargetValForChart = globalTargetValForChart * 100;
                     }
-                    if(shortLabel === "Kedah") shortLabel = "KEDAH";
+                }
+            }
 
-                    rawRows.push({ district: dist.district, shortLabel: shortLabel, isKedah: dist.district === "KEDAH", targetVal: chartNumericTarget, targetStr: rawTargetStr, num: indData.num, denom: indData.denom, perf: perfValue });
+            // Loop melalui susunan semua daerah
+            activeDistrictOrder.forEach(distName => {
+                let distData = globalData.find(d => d.normalizedDistrict === distName);
+                if (distData) {
+                    let indData = distData.indicators.find(i => i.activityNum === selectedActivityNum);
+                    if(indData) {
+                        let perfValue = 0;
+                        if(indData.denom > 0) perfValue = (indData.num / indData.denom) * 100;
+                        rawRows.push({ shortLabel: distName, isKedah: distName === "KEDAH", targetVal: globalTargetValForChart, targetStr: displayTargetStr, num: indData.num, denom: indData.denom, perf: perfValue });
+                    } else {
+                        rawRows.push({ shortLabel: distName, isKedah: distName === "KEDAH", targetVal: globalTargetValForChart, targetStr: displayTargetStr, num: 0, denom: 0, perf: 0 });
+                    }
+                } else {
+                    rawRows.push({ shortLabel: distName, isKedah: distName === "KEDAH", targetVal: globalTargetValForChart, targetStr: displayTargetStr, num: 0, denom: 0, perf: 0 });
                 }
             });
 
-            // Ganti nama tajuk jadual dan carta mengikut indikator yang dipilih
-            let indTitleMatch = globalData[0].indicators.find(i => i.name === selectedIndicator);
+            // Kira ambang tempoh untuk paparan
+            let periodThreshold = getPeriodThreshold(selectedPeriod, globalTargetValForChart);
+            let thresholdPct = Math.round(({"JAN-MAC":25,"JAN-JUN":50,"JAN-SEPT":75,"JAN-DIS":100}[selectedPeriod] || 100));
+
+            // Kemaskini header jadual dengan maklumat tempoh
+            let indTitleMatch = (kedahData || globalData[0]).indicators.find(i => i.activityNum === selectedActivityNum);
             let displayIndTitle = indTitleMatch ? indTitleMatch.displayName : "Prestasi Mengikut Daerah";
-            
+
             let tableHeaderTitle = document.getElementById('tableHeaderTitle');
             if(tableHeaderTitle) {
-                tableHeaderTitle.innerHTML = `<div class="bg-indigo-100 p-2 rounded-lg mr-3 shadow-sm"><svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></div><span class="truncate">${displayIndTitle}</span>`;
+                tableHeaderTitle.innerHTML = `<div class="bg-indigo-100 p-2 rounded-lg mr-3 shadow-sm"><svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></div><span class="truncate">${displayIndTitle}</span><span class="ml-3 text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg">${selectedPeriod}: Sasaran ≥${thresholdPct}%</span>`;
             }
 
             let chartHeaderTitle = document.getElementById('chartHeaderTitle');
@@ -676,18 +635,28 @@
                 chartHeaderTitle.innerHTML = `<div class="bg-indigo-100 p-2 rounded-lg mr-3 shadow-sm"><svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div><span class="truncate">Carta: ${displayIndTitle}</span>`;
             }
 
-            rawRows.sort((a,b) => activeDistrictOrder.indexOf(a.shortLabel) - activeDistrictOrder.indexOf(b.shortLabel));
-
             const tbody = document.getElementById('districtTableBody');
-            tbody.innerHTML = ''; let chartLabels = []; let chartData = [];
+            tbody.innerHTML = '';
+            let chartLabels = [];
+            let chartData = [];
+            let chartColors = [];
             
             rawRows.forEach(row => {
                 chartLabels.push(row.isKedah ? "KEDAH" : row.shortLabel);
                 chartData.push(row.perf);
 
-                let badgeClass = 'perf-badge-low';
-                if(row.perf >= row.targetVal) badgeClass = 'perf-badge-high';
-                else if(row.perf >= (row.targetVal * 0.8)) badgeClass = 'perf-badge-med';
+                // Tentukan sama ada pencapaian OK atau tidak berdasarkan tempoh dan pengecualian 5.6
+                let achieved = isAchieved(row.perf, row.targetVal, selectedPeriod, selectedActivityNum);
+
+                // Warna carta bar
+                if (row.isKedah) {
+                    chartColors.push(achieved ? 'rgba(22, 163, 74, 0.95)' : 'rgba(185, 28, 28, 0.90)');
+                } else {
+                    chartColors.push(achieved ? 'rgba(34, 197, 94, 0.80)' : 'rgba(239, 68, 68, 0.75)');
+                }
+
+                // Badge jadual: hijau atau merah sahaja (tiada kuning)
+                let badgeClass = achieved ? 'perf-badge-high' : 'perf-badge-low';
 
                 const tr = document.createElement('tr');
                 tr.className = `border-b hover:bg-slate-50 ${row.isKedah ? 'kedah-row' : 'bg-white'}`;
@@ -702,18 +671,53 @@
                 }
             });
 
-            drawChart(chartLabels, chartData, globalTargetValForChart, displayTargetStr);
+            drawChart(chartLabels, chartData, chartColors, periodThreshold, displayTargetStr, selectedPeriod, thresholdPct);
         }
 
-        function drawChart(labels, data, targetLineValue, targetStringDisplay) {
+        function drawChart(labels, data, colors, periodThreshold, targetStringDisplay, period, thresholdPct) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'Pencapaian (%)', data: data, backgroundColor: labels.map(l => l.includes("KEDAH") ? 'rgba(79, 70, 229, 0.95)' : 'rgba(129, 140, 248, 0.85)'), borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
-                annotation: { annotations: { line1: { type: 'line', yMin: targetLineValue, yMax: targetLineValue, borderColor: 'rgb(239, 68, 68)', borderWidth: 2, borderDash: [6, 6] } } }
-                }, scales: { y: { beginAtZero: true } } }
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: 'Pencapaian (%)', 
+                        data: data, 
+                        backgroundColor: colors,
+                        borderRadius: 8 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        annotation: { 
+                            annotations: { 
+                                line1: { 
+                                    type: 'line', 
+                                    yMin: periodThreshold, 
+                                    yMax: periodThreshold, 
+                                    borderColor: 'rgb(239, 68, 68)', 
+                                    borderWidth: 2.5, 
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: `Sasaran ${period} (${thresholdPct}%)`,
+                                        display: true,
+                                        position: 'end',
+                                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                                        color: 'white',
+                                        font: { size: 11, weight: 'bold' },
+                                        padding: { x: 6, y: 4 },
+                                        borderRadius: 4
+                                    }
+                                } 
+                            } 
+                        }
+                    }, 
+                    scales: { y: { beginAtZero: true } } 
+                }
             });
         }
 
