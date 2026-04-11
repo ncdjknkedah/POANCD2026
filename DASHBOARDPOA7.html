@@ -59,14 +59,15 @@
 
         <nav class="space-y-3 flex-1 mt-6">
             <p class="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">Navigasi Utama</p>
+            <button onclick="switchView('submission')" id="btn-nav-submission" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white">
+                <svg class="w-5 h-5 mr-3 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Status Penghantaran
+            </button>            
             <button onclick="switchView('dashboard')" id="btn-nav-dashboard" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/30">
                 <svg class="w-5 h-5 mr-3 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 Pencapaian POA
             </button>
-            <button onclick="switchView('submission')" id="btn-nav-submission" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white">
-                <svg class="w-5 h-5 mr-3 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                Status Penghantaran
-            </button>
+
             <hr class="border-slate-800 my-4">
             <button onclick="exportToPPTX()" id="btn-export-pptx" class="flex items-center w-full px-4 py-3.5 text-sm font-semibold transition-all duration-200 rounded-xl bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-900/30 group">
                 <svg class="w-5 h-5 mr-3 opacity-90 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
